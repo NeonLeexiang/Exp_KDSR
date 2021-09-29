@@ -31,9 +31,11 @@ from utils.metrics import get_psnr
 device = None
 model_type = None
 
+
 def adjust_learning_rate(config, epoch):
     lr = config.optimizer.params.lr * (0.5 ** (epoch // config.scheduler.params.step_size))
     return lr
+
 
 def train_single_epoch(config, model, dataloader, criterion,
                        optimizer, epoch, writer,
@@ -94,7 +96,12 @@ def evaluate_single_epoch(config, model, dataloader, criterion,
 
         total_psnr = 0
         total_loss = 0
+
+        # FIXME: adding avg_count for fixing the local variable i error
+        avg_count = 0
+
         for i, (LR_img, HR_img, filepath) in tbar:
+            avg_count += 1
             HR_img = HR_img.to(device)
             LR_img = LR_img.to(device)
 
@@ -118,10 +125,13 @@ def evaluate_single_epoch(config, model, dataloader, criterion,
                 writer.add_figure('{}/{:04d}'.format(eval_type, i), fig,
                                  global_step=epoch)
 
-
         log_dict = {}
-        avg_loss = total_loss / (i+1)
-        avg_psnr = total_psnr / (i+1)
+        # print(avg_count)
+        # FIXME: adding avg_count
+        avg_loss = total_loss / (avg_count+1)
+        avg_psnr = total_psnr / (avg_count+1)
+        # avg_loss = total_loss / (i+1)
+        # avg_psnr = total_psnr / (i+1)
         log_dict['loss'] = avg_loss
         log_dict['psnr'] = avg_psnr
 
@@ -228,7 +238,7 @@ def main():
 
     config = utils.config.load(args.config_file)
 
-    os.environ["CUDA_VISIBLE_DEVICES"]= str(config.gpu)
+    os.environ["CUDA_VISIBLE_DEVICES"] = str(config.gpu)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     pprint.PrettyPrinter(indent=2).pprint(config)

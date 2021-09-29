@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" serverName="Exp_KDSR_IMAG" remoteFilesAllowedToDisappearOnAutoupload="false">
+    <serverData>
+      <paths name="Exp_KDSR_IMAG">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/Exp_KDSR" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+          <excludedPaths>
+            <excludedPath local="true" path="$PROJECT_DIR$/venv" />
+            <excludedPath path="/Exp_KDSR/PISR/data" />
+            <excludedPath path="/Exp_KDSR/PISR/results/fsrcnn/fsrcnn_teacher/checkpoint" />
+          </excludedPaths>
+        </serverdata>
+      </paths>
+    </serverData>
+  </component>
+</project>

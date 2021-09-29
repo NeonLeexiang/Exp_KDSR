@@ -12,7 +12,7 @@ data:
         augment: True
         patch_size: 192
         data_range: '1-800'
-        test_every: 1000
+        test_every: 100
 
   valid:
     - name: 'DIV2K'
