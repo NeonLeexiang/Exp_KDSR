@@ -3,7 +3,7 @@
   <component name="WebServers">
     <option name="servers">
       <webServer id="c3e26b5c-6189-44cf-b062-ff722f0a4346" name="Exp_KDSR_IMAG">
-        <fileTransfer rootFolder="/home/10901008" accessType="SFTP" host="202.119.84.33" port="10022" sshConfigId="d0885fef-b9e5-47de-805e-2ea1789607ca" sshConfig="10901008@202.119.84.33:10022 password">
+        <fileTransfer rootFolder="/home/10901008" accessType="SFTP" host="10.10.100.1" port="22" sshConfigId="d5c9451e-5a5b-47f3-9376-648af66f6c15" sshConfig="10901008@10.10.100.1:22 password">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
           </advancedOptions>
