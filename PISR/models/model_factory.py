@@ -1,6 +1,8 @@
 import os, sys
 import torch
 from .fsrcnn import *
+from .edsr_adder_net import *
+from .fsrcnn_adder_net import *
 
 
 device = None

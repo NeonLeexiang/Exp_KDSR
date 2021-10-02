@@ -7,6 +7,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH -t 30:00:00
 #SBATCH --gres=gpu:1
+#SBATCH -w node006
 
 module load cuda10.2
 

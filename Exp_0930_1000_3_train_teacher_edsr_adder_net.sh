@@ -1,13 +1,14 @@
 #!/bin/bash
 
-#SBATCH -J E929
+#SBATCH -J E930
 #SBATCH -p defq
 #SBATCH -N 1
 #SBATCH --ntasks-per-node=6
 #SBATCH --cpus-per-task=1
 #SBATCH -t 30:00:00
 #SBATCH --gres=gpu:1
-#SBATCH -w node006
+
+
 
 module load cuda10.2
 
@@ -21,7 +22,7 @@ python test_conda_env_setting.py
 
 cd PISR || exit
 
-python step1_train_teacher.py --config configs/fsrcnn/step1.yml
+python step1_train_teacher.py --config configs/edsr_adder_net/step1.yml
 
 
 

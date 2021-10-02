@@ -127,6 +127,8 @@ class BaseDatasetRAM(ParentDataset):
             f_lr = self.lr_data_paths[idx]
 
             filename, _ = os.path.splitext(os.path.basename(f_hr))
+            # FIXME: to fix the ran out of range error
+            # print(filename)
             with open(f_hr, 'rb') as _f:
                 hr = pickle.load(_f)
             with open(f_lr, 'rb') as _f:

@@ -1,6 +1,6 @@
 data:
   scale: 2
-  n_colors: 1
+  n_colors: 3
   rgb_range: 1
   num_workers: 3
   pin_memory: False
@@ -10,7 +10,7 @@ data:
       params:
         base_dir: './data/DIV2K'
         augment: True
-        patch_size: 192
+        patch_size: 32
         data_range: '1-800'
         test_every: 1000
 
@@ -19,7 +19,7 @@ data:
       params:
         base_dir: './data/DIV2K'
         augment: False
-        patch_size: 192
+        patch_size: 32
         data_range: '801-810'
 
   test:
@@ -38,6 +38,6 @@ data:
 
 
 train:
- dir: './results/fsrcnn/'
+ dir: './results/edsr/'
 
 
