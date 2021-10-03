@@ -147,7 +147,8 @@ class AdderVDSR(nn.Module):
         self.output_layer = Conv2d(in_channels=d, out_channels=n_colors, kernel_size=3, stride=1, padding=1)
         self.relu = nn.ReLU(inplace=True)
 
-        self.up_sampler = nn.Sequential(*Upsampler(scale, n_colors, act=False))
+        self.up_sampler = nn.Sequential(OrderedDict([
+            ('upsampler', nn.Sequential(*Upsampler(scale, n_colors, act=False)))]))
 
         self.network = nn.Sequential(OrderedDict(
             [
@@ -175,7 +176,7 @@ class VDSRAutoencoder(VDSR):
     def __init__(self, scale, n_colors, d=56, s=56, m=16, k=1, encoder='inv_fsrcnn'):
         super(VDSRAutoencoder, self).__init__(scale, n_colors, d, s, m)
         self.encoder = get_encoder(encoder, scale=scale, d=56, s=12, k=k, n_colors=n_colors)
-        self.encoder_network = nn.Sequential(*self.encoder)
+        self.encoder_network = nn.Sequential(OrderedDict([('encoder', nn.Sequential(*self.encoder))]))
 
     def forward(self, x):
         x = self.encoder_network(x)
@@ -213,23 +214,23 @@ class VDSRTeacher(BaseNet):
 
         for layer_name in layer_names_encoder:
             x = self.backbone.encoder_network._modules[layer_name](x)
-            # ret_dict[layer_name] = x
-            # if layer_name in self.distill_layers:
-            #     mean = self.vid_module_dict._modules[layer_name+'_mean'](x)
-            #     var = self.vid_module_dict._modules[layer_name+'_var'](x)
-            #     ret_dict[layer_name+'_mean'] = mean
-            #     ret_dict[layer_name+'_var'] = var
+            ret_dict[layer_name] = x
+            if layer_name in self.distill_layers:
+                mean = self.vid_module_dict._modules[layer_name+'_mean'](x)
+                var = self.vid_module_dict._modules[layer_name+'_var'](x)
+                ret_dict[layer_name+'_mean'] = mean
+                ret_dict[layer_name+'_var'] = var
 
 
         layer_names_up_sampler = self.backbone.up_sampler._modules.keys()
         for layer_name in layer_names_up_sampler:
             x = self.backbone.up_sampler._modules[layer_name](x)
-            # ret_dict[layer_name] = x
-            # if layer_name in self.distill_layers:
-            #     mean = self.vid_module_dict._modules[layer_name + '_mean'](x)
-            #     var = self.vid_module_dict._modules[layer_name + '_var'](x)
-            #     ret_dict[layer_name + '_mean'] = mean
-            #     ret_dict[layer_name + '_var'] = var
+            ret_dict[layer_name] = x
+            if layer_name in self.distill_layers:
+                mean = self.vid_module_dict._modules[layer_name + '_mean'](x)
+                var = self.vid_module_dict._modules[layer_name + '_var'](x)
+                ret_dict[layer_name + '_mean'] = mean
+                ret_dict[layer_name + '_var'] = var
 
         residual = x
 
@@ -277,12 +278,12 @@ class VDSRStudent(BaseNet):
         layer_names_up_sampler = self.backbone.up_sampler._modules.keys()
         for layer_name in layer_names_up_sampler:
             x = self.backbone.up_sampler._modules[layer_name](x)
-            # ret_dict[layer_name] = x
-            # if layer_name in self.distill_layers:
-            #     mean = self.vid_module_dict._modules[layer_name + '_mean'](x)
-            #     var = self.vid_module_dict._modules[layer_name + '_var'](x)
-            #     ret_dict[layer_name + '_mean'] = mean
-            #     ret_dict[layer_name + '_var'] = var
+            ret_dict[layer_name] = x
+            if layer_name in self.distill_layers:
+                mean = self.vid_module_dict._modules[layer_name + '_mean'](x)
+                var = self.vid_module_dict._modules[layer_name + '_var'](x)
+                ret_dict[layer_name + '_mean'] = mean
+                ret_dict[layer_name + '_var'] = var
 
         residual = x
 

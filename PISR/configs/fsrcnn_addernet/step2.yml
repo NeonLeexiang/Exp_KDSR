@@ -1,8 +1,8 @@
-base_config: 'configs/fsrcnn/base.ram.yml'
+base_config: 'configs/fsrcnn_addernet/base.ram.yml'
 
 
 teacher_model:
-  name: 'fsrcnn_teacher'
+  name: 'fsrcnn_addernet_teacher'
   params:
     scale: 2
     n_colors: 1
@@ -12,12 +12,12 @@ teacher_model:
 
 
 student_model:
-  name: 'fsrcnn_student'
+  name: 'fsrcnn_addernet_student'
   params:
     scale: 2
     n_colors: 1
     initialize_from:
-      - 'results/fsrcnn/fsrcnn_teacher/checkpoint/'
+      - 'results/fsrcnn_addernet/fsrcnn_addernet_teacher/checkpoint/'
     modules_to_initialize:
       - - 'feature_extraction'
         - 'shrinking'
