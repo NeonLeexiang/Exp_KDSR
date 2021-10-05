@@ -3,11 +3,11 @@
 #SBATCH -J E1002
 #SBATCH -p defq
 #SBATCH -N 1
-#SBATCH --ntasks-per-node=6
+#SBATCH --ntasks-per-node=16
 #SBATCH --cpus-per-task=1
 #SBATCH -t 30:00:00
 #SBATCH --gres=gpu:1
-
+#SBATCH -w node006
 
 
 module load cuda10.2

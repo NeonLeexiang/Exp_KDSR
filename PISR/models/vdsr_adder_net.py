@@ -1,4 +1,6 @@
-from .adder import adder2d
+# from .adder import adder2d
+from .AdderNetCUDA.adder import adder
+from .AdderNetCUDA.adder.adder import Adder2D as adder2d
 import torch.nn as nn
 import torch
 from collections import OrderedDict
@@ -18,7 +20,8 @@ def Conv2d(in_channels, out_channels, kernel_size, stride, padding):
     :param padding:
     :return:
     """
-    return adder2d(in_channels, out_channels, kernel_size=kernel_size, stride=stride, padding=padding, bias=False)
+    # FIXME: setting bias=True
+    return adder2d(in_channels, out_channels, kernel_size=kernel_size, stride=stride, padding=padding, bias=True)
 
 
 def conv3x3(in_planes, out_planes, stride=1):
@@ -34,7 +37,8 @@ def conv1x1(in_planes, out_planes, stride=1):
 
 # Upsampler
 class Upsampler(nn.Sequential):
-    def __init__(self, scale, n_feats, bn=False, act=False, bias=False):
+    # FIXME: setting bias=True
+    def __init__(self, scale, n_feats, bn=False, act=False, bias=True):
         m = []
         if (scale & (scale - 1)) == 0:  # Is scale = 2^n?
             for _ in range(int(math.log(scale, 2))):
@@ -91,22 +95,24 @@ class AdderConvReLUBlock(nn.Module):
 
 
 class VDSR(nn.Module):
-    def __init__(self, scale, n_colors, d=56, s=56, m=16, vdsr_weight_init=False):
+    def __init__(self, scale, n_colors, d=12, s=12, m=4, vdsr_weight_init=False):
         super(VDSR, self).__init__()
         self.scale = scale
-        self.residual_layer = self.make_layer(ConvReLUBlock, m, d, s)
-        self.input_layer = nn.Conv2d(in_channels=n_colors, out_channels=d, kernel_size=(3, 3,),
-                                     stride=(1, 1), padding=(1, 1), bias=False)
-        self.output_layer = nn.Conv2d(in_channels=d, out_channels=n_colors, kernel_size=(3, 3),
-                                      stride=(1, 1), padding=(1, 1), bias=False)
-        self.relu = nn.ReLU(inplace=True)
-        self.up_sampler = nn.Sequential(*Upsampler(scale, n_colors, act=False))
+        self.residual_layer = []
+        self.residual_layer.append(self.make_layer(ConvReLUBlock, m, d, d))
+        self.input_layer = []
+        self.input_layer.append(nn.Conv2d(in_channels=n_colors, out_channels=d, kernel_size=(3, 3,), stride=(1, 1), padding=(1, 1), bias=False))
+        self.output_layer = []
+        self.output_layer.append(nn.Conv2d(in_channels=d, out_channels=n_colors, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False))
+        self.input_layer.append(nn.ReLU(inplace=True))
+        self.up_sampler = nn.Sequential(OrderedDict([
+            ('upsampler', nn.Sequential(*Upsampler(scale, n_colors, act=False)))]))
 
         self.network = nn.Sequential(OrderedDict(
             [
-                ('input_layers', nn.Sequential(self.input_layer, self.relu)),
-                ('residual_layers', nn.Sequential(self.residual_layer)),
-                ('output_layers', nn.Sequential(self.output_layer))
+                ('input_layers', nn.Sequential(*self.input_layer)),
+                ('residual_layers', nn.Sequential(*self.residual_layer)),
+                ('output_layers', nn.Sequential(*self.output_layer))
             ]
         ))
 
@@ -140,23 +146,28 @@ class VDSR(nn.Module):
 
 
 class AdderVDSR(nn.Module):
-    def __init__(self, scale, n_colors, d=56, s=56, m=16, vdsr_weight_init=False):
+    def __init__(self, scale, n_colors, d=12, s=12, m=4, vdsr_weight_init=False):
         super(AdderVDSR, self).__init__()
-        self.residual_layer = self.make_layer(AdderConvReLUBlock, m, d, s)
-        self.input_layer = Conv2d(in_channels=n_colors, out_channels=d, kernel_size=3, stride=1, padding=1)
-        self.output_layer = Conv2d(in_channels=d, out_channels=n_colors, kernel_size=3, stride=1, padding=1)
-        self.relu = nn.ReLU(inplace=True)
+        self.residual_layer = []
+        self.residual_layer.append(self.make_layer(AdderConvReLUBlock, m, d, d))
+        self.input_layer = []
+        self.input_layer.append(Conv2d(in_channels=n_colors, out_channels=d, kernel_size=3, stride=1, padding=1))
+        self.output_layer = []
+        self.output_layer.append(Conv2d(in_channels=d, out_channels=n_colors, kernel_size=3, stride=1, padding=1))
+        self.input_layer.append(nn.ReLU(inplace=True))
 
         self.up_sampler = nn.Sequential(OrderedDict([
             ('upsampler', nn.Sequential(*Upsampler(scale, n_colors, act=False)))]))
 
         self.network = nn.Sequential(OrderedDict(
             [
-                ('input_layers', nn.Sequential(self.input_layer, self.relu)),
-                ('residual_layers', nn.Sequential(self.residual_layer)),
-                ('output_layers', nn.Sequential(self.output_layer))
+                ('input_layers', nn.Sequential(*self.input_layer)),
+                ('residual_layers', nn.Sequential(*self.residual_layer)),
+                ('output_layers', nn.Sequential(*self.output_layer))
             ]
         ))
+        # FIXME: init
+        # self.vdsr_adder_weight_init()
 
     def forward(self, x):
         x = self.up_sampler(x)
@@ -171,9 +182,16 @@ class AdderVDSR(nn.Module):
             layers.append(block(in_channels, out_channels))
         return nn.Sequential(*layers)
 
+    def vdsr_adder_weight_init(self):
+        for name, param in self.network.named_parameters():
+            if 'weight' in name:
+                nn.init.kaiming_normal_(param)
+            if 'bias' in name:
+                nn.init.normal_(param, 0, 0.001)
+
 
 class VDSRAutoencoder(VDSR):
-    def __init__(self, scale, n_colors, d=56, s=56, m=16, k=1, encoder='inv_fsrcnn'):
+    def __init__(self, scale, n_colors, d=12, s=12, m=4, k=1, encoder='inv_fsrcnn'):
         super(VDSRAutoencoder, self).__init__(scale, n_colors, d, s, m)
         self.encoder = get_encoder(encoder, scale=scale, d=56, s=12, k=k, n_colors=n_colors)
         self.encoder_network = nn.Sequential(OrderedDict([('encoder', nn.Sequential(*self.encoder))]))
@@ -188,7 +206,7 @@ class VDSRAutoencoder(VDSR):
 
 
 class VDSRTeacher(BaseNet):
-    def __init__(self, scale, n_colors,  d=56, s=56, m=16, k=1, vid_info=None,
+    def __init__(self, scale, n_colors,  d=12, s=12, m=4, k=1, vid_info=None,
                  modules_to_freeze=None, initialize_from=None, modules_to_initialize=None,
                  encoder='inv_fsrcnn'):
         super(VDSRTeacher, self).__init__()
@@ -252,7 +270,7 @@ class VDSRTeacher(BaseNet):
 
 
 class VDSRStudent(BaseNet):
-    def __init__(self, scale, n_colors, d=56, s=56, m=16, vid_info=None,
+    def __init__(self, scale, n_colors, d=12, s=12, m=16, vid_info=None,
                 modules_to_freeze=None, initialize_from=None,
                 modules_to_initialize=None, vdsr_weight_init=False):
 
@@ -270,10 +288,10 @@ class VDSRStudent(BaseNet):
         if modules_to_freeze is not None:
             self.freeze_modules()
 
-    def forward(self, HR, LR=None):
+    def forward(self, LR, HR=None, teacher_pred_dict=None):
         ret_dict = dict()
 
-        x = HR
+        x = LR
 
         layer_names_up_sampler = self.backbone.up_sampler._modules.keys()
         for layer_name in layer_names_up_sampler:

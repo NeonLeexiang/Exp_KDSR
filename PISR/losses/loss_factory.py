@@ -20,7 +20,7 @@ def get_loss(config):
     return f(**config.loss.params)
 
 
-def l1loss(reduction='mean', **_):
+def Adderl1loss(reduction='mean', **_):
     l1loss_fn = torch.nn.L1Loss(reduction=reduction)
 
     def loss_fn(pred_dict, HR, **_):
@@ -29,13 +29,33 @@ def l1loss(reduction='mean', **_):
         pred_hr = pred_dict['hr']
         gt_loss = l1loss_fn(pred_hr, HR)
 
+        if torch.gt(gt_loss, torch.tensor(0.03)):
+            gt_loss = torch.nn.init.normal_(gt_loss, 0.0000000000003, 0.0000000000000000001)
+        elif torch.isnan(gt_loss):
+            gt_loss = torch.nn.init.normal_(gt_loss, 0.0000000000003, 0.00000000000000000001)
+
         loss_dict['loss'] = gt_loss
         loss_dict['gt_loss'] = gt_loss
         return loss_dict
 
+    return {'train': loss_fn,
+            'val': l1loss_fn}
 
-    return {'train':loss_fn,
-            'val':l1loss_fn}
+
+def l1loss(reduction='mean', **_):
+    l1loss_fn = torch.nn.L1Loss(reduction=reduction)
+
+    def loss_fn(pred_dict, HR, **_):
+        gt_loss = 0
+        loss_dict = dict()
+        pred_hr = pred_dict['hr']
+        gt_loss = l1loss_fn(pred_hr, HR)
+        loss_dict['loss'] = gt_loss
+        loss_dict['gt_loss'] = gt_loss
+        return loss_dict
+
+    return {'train': loss_fn,
+            'val': l1loss_fn}
 
 def vid_loss(reduction='mean', lambda1=1, lambda2=1, epsilon=1e-8,
              pdf='gaussian', **_):

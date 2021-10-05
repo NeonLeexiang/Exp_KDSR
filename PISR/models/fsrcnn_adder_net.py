@@ -195,4 +195,6 @@ def get_fsrcnn_addernet_student(scale, n_colors, **kwargs):
     return FSRCNNStudent(scale, n_colors, **kwargs)
 
 
+def get_fsrcnn_addernet_base_student(scale, n_colors, **kwargs):
+    return FSRCNNStudent(scale, n_colors, **kwargs)
 

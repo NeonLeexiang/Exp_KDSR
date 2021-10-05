@@ -5,7 +5,7 @@
 #SBATCH -N 1
 #SBATCH --ntasks-per-node=6
 #SBATCH --cpus-per-task=1
-#SBATCH -t 30:00:00
+#SBATCH -t 50:00:00
 #SBATCH --gres=gpu:1
 
 

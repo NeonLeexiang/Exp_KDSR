@@ -4,6 +4,7 @@ from .fsrcnn import *
 from .edsr_adder_net import *
 from .fsrcnn_adder_net import *
 from .vdsr_adder_net import *
+from .vdsr_base_model import *
 
 
 device = None

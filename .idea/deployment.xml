@@ -2,6 +2,13 @@
 <project version="4">
   <component name="PublishConfigData" serverName="Exp_KDSR_IMAG" remoteFilesAllowedToDisappearOnAutoupload="false">
     <serverData>
+      <paths name="10901008@10.10.100.1:22 password (1)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/tmp/pycharm_project_421" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
       <paths name="Exp_KDSR_IMAG">
         <serverdata>
           <mappings>
