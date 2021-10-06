@@ -20,9 +20,9 @@ nvcc -V
 python test_conda_env_setting.py
 
 
-cd AdderNetCUDA/ || exit
+cd PISR/models/unoptimized/ || exit
 
-python check.py
+python setup.py install
 
 
 

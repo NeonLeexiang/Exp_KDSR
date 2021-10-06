@@ -1,6 +1,5 @@
 # from .adder import adder2d
-from .AdderNetCUDA.adder import adder
-from .AdderNetCUDA.adder.adder import Adder2D as adder2d
+from .adder4cuda import adder2d
 import torch.nn as nn
 import torch
 from collections import OrderedDict

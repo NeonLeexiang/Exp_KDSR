@@ -56,9 +56,9 @@ def train_single_epoch(config, model, dataloader, criterion,
         pred_dict = model.forward(LR=LR_patch, HR=HR_patch)
 
         loss = criterion['train'](pred_dict=pred_dict, LR=LR_patch, HR=HR_patch)
-        # FIXME: print loss
-        tqdm.tqdm.write(str(loss))
-        tqdm.tqdm.write(str(pred_dict['hr'].max()) + str(HR_patch.max()))
+        # # FIXME: print loss
+        # tqdm.tqdm.write(str(loss))
+        # tqdm.tqdm.write(str(pred_dict['hr'].max()) + str(HR_patch.max()))
 
         for k, v in loss.items():
             log_dict[k] = v.item()

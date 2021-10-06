@@ -31,11 +31,11 @@ optimizer:
   name: adam
   params:
     lr: 0.0001
-  gradient_clip: 0.25
+#  gradient_clip: 0.25
 
 
 loss:
-  name: 'Adderl1loss'
+  name: 'l1loss'
   params:
     reduction: 'mean'
 
