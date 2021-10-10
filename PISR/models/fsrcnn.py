@@ -174,5 +174,3 @@ def get_fsrcnn_teacher(scale, n_colors, **kwargs):
 def get_fsrcnn_student(scale, n_colors, **kwargs):
     return FSRCNNStudent(scale, n_colors, **kwargs)
 
-
-

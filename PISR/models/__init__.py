@@ -7,4 +7,5 @@ from .model_factory import get_model
 # ------------------------ AdderNet ---------------------- #
 from .adder import *
 from .adder4cuda import *
+from .self_AdderNet import *
 
