@@ -7,6 +7,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH -t 50:00:00
 #SBATCH --gres=gpu:1
+#SBATCH -w node006
 
 
 

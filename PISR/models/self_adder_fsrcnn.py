@@ -144,9 +144,6 @@ class SelfFSRCNNTeacher(BaseNet):
         return ret_dict
 
 
-
-
-
 class FSRCNN(nn.Module):
     def __init__(self, scale, n_colors, d=56, s=12, m=4, fsrcnn_weight_init=False):
         super(FSRCNN, self).__init__()
