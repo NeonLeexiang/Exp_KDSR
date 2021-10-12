@@ -38,6 +38,6 @@ data:
 
 
 train:
- dir: './results/fsrcnn/'
+ dir: './results/fsrcnn_base/'
 
 

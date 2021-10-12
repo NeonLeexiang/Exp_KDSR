@@ -36,6 +36,27 @@ class AdderLayer(nn.Module):
         return x
 
 
+class SelfAdderLayer(nn.Module):
+    def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1):
+        super(SelfAdderLayer, self).__init__()
+
+        self.net = []
+        for c in range(3):
+            self.net.append(nn.Sequential(AdderLayer(in_channels=in_channels, out_channels=out_channels,
+                                                kernel_size=kernel_size, stride=stride, padding=padding)))
+        self.network = nn.Sequential(*self.net)
+        # self.act = PowerActivation()
+        # self.batch_normal = nn.BatchNorm2d(in_channels)
+
+    def forward(self, x):
+        # res = x
+        # x = self.conv(x)
+        # x += res
+        # x = self.batch_normal(x)
+        # x = self.act(x)
+        return self.network(x)
+
+
 # -------------------------- CUDA AdderNet Layer -------------------------------- #
 def conv2d_cuda(in_channels, out_channels, kernel_size, stride, padding):
     """
