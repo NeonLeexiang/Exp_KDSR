@@ -102,8 +102,68 @@ def vid_loss(reduction='mean', lambda1=1, lambda2=1, epsilon=1e-8,
 
         gt_loss = gt_loss_fn(student_pred_hr, HR)
 
+        # TODO: 3 add loss
         loss_dict['loss'] = lambda1 * (gt_loss + layer_loss) + lambda2 * distill_loss
+        # loss_dict['loss'] = lambda1 * gt_loss + lambda2 * distill_loss
         loss_dict['gt_loss'] = lambda1 * gt_loss
+        loss_dict['layer_loss'] = layer_loss
+        loss_dict['distill_loss'] = lambda2 * distill_loss
+
+        return loss_dict
+
+    return {'train': loss_fn,
+            'val': l1loss_fn}
+
+
+# TODO: lambda2 layer_loss
+def vid_loss_l2(reduction='mean', lambda1=1, lambda2=1, epsilon=1e-8,
+             pdf='gaussian', **_):
+    l1loss_fn = torch.nn.L1Loss(reduction=reduction)
+    gt_loss_fn = l1loss_fn
+
+    def vid_loss_fn(mu, std, tl):
+        if pdf == 'laplace':
+            std = std * 0.1 + epsilon
+            numerator = torch.abs(mu - tl)
+            loss = mu.shape[1] * np.log(2 * math.pi) / 2 + torch.log(2 * std) + numerator / (std)
+        elif pdf == 'gaussian':
+            std = std * 0.001 + epsilon
+            numerator = (mu - tl) ** 2
+            loss = mu.shape[1] * np.log(2 * math.pi) / 2 + torch.log(std) / 2 + numerator / (2 * std)
+
+        loss = loss.mean()
+        return loss
+
+    def loss_fn(teacher_pred_dict, student_pred_dict, HR):
+        gt_loss = 0
+        distill_loss = 0
+
+        # TODO: 1 layer loss
+        layer_loss = 0
+
+        loss_dict = dict()
+        student_pred_hr = student_pred_dict['hr']
+
+        for k, v in student_pred_dict.items():
+            if 'mean' in k and 'sub' not in k and 'add' not in k:
+                layer_name = k.split('_mean')[0]
+                tl = teacher_pred_dict[layer_name]
+
+                # TODO: 2 layer loss
+                stl = student_pred_dict[layer_name]
+                layer_loss += gt_loss_fn(stl, tl)
+
+                mu = student_pred_dict['%s_mean' % layer_name]
+                std = student_pred_dict['%s_var' % layer_name]
+                distill_loss += vid_loss_fn(mu, std, tl)
+
+        gt_loss = gt_loss_fn(student_pred_hr, HR)
+
+        # TODO: 3 add loss
+        loss_dict['loss'] = lambda1 * gt_loss + lambda2 * (distill_loss + layer_loss)
+        # loss_dict['loss'] = lambda1 * gt_loss + lambda2 * distill_loss
+        loss_dict['gt_loss'] = lambda1 * gt_loss
+        loss_dict['layer_loss'] = lambda2 * layer_loss
         loss_dict['distill_loss'] = lambda2 * distill_loss
 
         return loss_dict

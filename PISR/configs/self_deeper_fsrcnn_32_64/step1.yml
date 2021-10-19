@@ -1,11 +1,13 @@
-base_config: 'configs/fsrcnn/base.ram.yml'
+base_config: 'configs/self_deeper_fsrcnn_32_64/base.ram.yml'
 
 teacher_model:
-  name: 'fsrcnn_student'
+  name: 'self_fsrcnn_teacher'
   params:
     scale: 2
     n_colors: 1
     m: 4
+    k: 1
+    encoder: lcscc
 
 
 train:
@@ -32,14 +34,14 @@ optimizer:
 
 
 loss:
-  name: 'l1loss'
+  name: 'teacher_LR_constraint_loss'
   params:
     reduction: 'mean'
-
+    lambda2: 0.0001
 
 
 visualizer:
-  name: 'step2'
+  name: 'step1'
 
 
 gpu: 0

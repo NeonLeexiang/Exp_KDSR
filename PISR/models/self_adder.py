@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from .adder4cuda import adder2d as adder2d_cuda
+from .adder4cuda import Adder2D as adder2d_cuda
 from .adder import adder2d
 from .self_act import PowerActivation
 
@@ -75,12 +75,34 @@ class AdderLayerCUDA(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1):
         super(AdderLayerCUDA, self).__init__()
         self.conv = conv2d_cuda(in_channels=in_channels, out_channels=out_channels, kernel_size=kernel_size,
-                           stride=stride, padding=padding)
+                                stride=stride, padding=padding)
         self.act = PowerActivation()
+        self.batch_normal = nn.BatchNorm2d(in_channels)
 
     def forward(self, x):
         res = x
         x = self.conv(x)
         x += res
+        x = self.batch_normal(x)
         return self.act(x)
 
+
+class SelfAdderLayerCUDA(nn.Module):
+    def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1):
+        super(SelfAdderLayerCUDA, self).__init__()
+
+        self.net = []
+        for c in range(3):
+            self.net.append(nn.Sequential(AdderLayerCUDA(in_channels=in_channels, out_channels=out_channels,
+                                                         kernel_size=kernel_size, stride=stride, padding=padding)))
+        self.network = nn.Sequential(*self.net)
+        # self.act = PowerActivation()
+        # self.batch_normal = nn.BatchNorm2d(in_channels)
+
+    def forward(self, x):
+        # res = x
+        # x = self.conv(x)
+        # x += res
+        # x = self.batch_normal(x)
+        # x = self.act(x)
+        return self.network(x)

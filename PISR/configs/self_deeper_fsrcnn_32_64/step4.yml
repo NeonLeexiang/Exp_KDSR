@@ -1,7 +1,7 @@
-base_config: 'configs/fsrcnn/base.ram.yml'
+base_config: 'configs/self_deeper_fsrcnn_32_64/base.ram.yml'
 
 teacher_model:
-  name: 'fsrcnn_student'
+  name: 'self_fsrcnn_student'
   params:
     scale: 2
     n_colors: 1

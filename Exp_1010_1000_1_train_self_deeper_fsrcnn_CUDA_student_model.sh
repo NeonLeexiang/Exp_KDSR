@@ -1,15 +1,18 @@
 #!/bin/bash
 
-#SBATCH -J test
+#SBATCH -J E1010
 #SBATCH -p defq
 #SBATCH -N 1
-#SBATCH --ntasks-per-node=1
+#SBATCH --ntasks-per-node=6
 #SBATCH --cpus-per-task=1
-#SBATCH -t 1:00:00
+#SBATCH -t 50:00:00
 #SBATCH --gres=gpu:1
 
 
-module load gcc5
+
+
+
+
 module load cuda10.2
 
 nvidia-smi
@@ -20,9 +23,9 @@ nvcc -V
 python test_conda_env_setting.py
 
 
-cd PISR/models/shift_adder_cuda/ || exit
+cd PISR || exit
 
-python setup.py install
+python step2_train_student.py --config configs/self_deeper_fsrcnn/step2_cuda.yml
 
 
 
