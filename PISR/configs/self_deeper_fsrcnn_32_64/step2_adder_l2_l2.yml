@@ -12,7 +12,7 @@ teacher_model:
 
 
 student_model:
-  name: 'self_fsrcnn_student_l2'
+  name: 'self_fsrcnn_student_l2_l2'
   params:
     scale: 2
     n_colors: 1
@@ -26,7 +26,7 @@ student_model:
 
 train:
   batch_size: 16
-  num_epochs: 2000
+  num_epochs: 1000
   teacher_dir: ''
   student_dir: ''
 
@@ -38,8 +38,8 @@ eval:
 scheduler:
   name: 'cosine'
   params:
-    T_max: 2000
-    eta_min: 0.0000001
+    T_max: 1000
+    eta_min: 0.00001
 
 
 optimizer:

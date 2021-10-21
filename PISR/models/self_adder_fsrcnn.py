@@ -432,9 +432,20 @@ def get_self_fsrcnn_student(scale, n_colors, **kwargs):
     return SelfAdderFSRCNNStudent(scale, n_colors, **kwargs)
 
 
+def get_self_fsrcnn_adder_base_student(scale, n_colors, **kwargs):
+    return SelfAdderFSRCNNStudent(scale, n_colors, **kwargs)
+
+
 def get_self_fsrcnn_student_l2(scale, n_colors, **kwargs):
     return SelfAdderFSRCNNStudent(scale, n_colors, **kwargs)
 
+
+def get_self_fsrcnn_student_l2_base(scale, n_colors, **kwargs):
+    return SelfAdderFSRCNNStudent(scale, n_colors, **kwargs)
+
+
+def get_self_fsrcnn_student_l2_l2(scale, n_colors, **kwargs):
+    return SelfAdderFSRCNNStudent(scale, n_colors, **kwargs)
 
 
 if __name__ == '__main__':
