@@ -1,13 +1,28 @@
 # Exp_KDSR: 知识蒸馏应用在超分领域
 
-## Exp_Record:
-[Exp_Record](Exp_Record.md)
+
+---
+
+实验出发点是为了看如何使用规模更加小的模型去达到目前`SOTA`模型的效果。
+目前有的 idea 是尝试使用 `AdderNet` 去作为一个 student network。
+
+- [x] `AdderNet`
+- [ ] `ConvNet`
+
+---
+## `AdderNet Student`
+
+### Exp_Record:
+
+## Result table:
+
+|            | `base` `36psnr` | `Adder lambda=1` `32psnr` | `Adder lambda=1e-5` `34psnr` |
+| ---------- | --------------- | ------------------------- | ---------------------------- |
+| `Set5`     | `37.138`        | `30.477`                  | `34.526`                     |
+| `Set14`    | `32.672`        | `28.856`                  | `30.513`                     |
+| `B100`     | `31.554`        | `28.541`                  | `30.317`                     |
+| `Urban100` | `30.010`        | `26.259`                  | `27.892`                     |
 
 
-## Exp_Detail:
 
-structure: `PISR`
 
-* `FSRCNN`
-* `FSRCNN_Addernet`
-* `VDSR_Addernet`

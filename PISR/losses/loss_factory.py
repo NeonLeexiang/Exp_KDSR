@@ -160,10 +160,10 @@ def vid_loss_l2(reduction='mean', lambda1=1, lambda2=1, epsilon=1e-8,
         gt_loss = gt_loss_fn(student_pred_hr, HR)
 
         # TODO: 3 add loss
-        loss_dict['loss'] = lambda1 * gt_loss + lambda2 * (distill_loss + layer_loss)
+        loss_dict['loss'] = lambda1 * gt_loss + lambda2 * (distill_loss + layer_loss * 100)
         # loss_dict['loss'] = lambda1 * gt_loss + lambda2 * distill_loss
         loss_dict['gt_loss'] = lambda1 * gt_loss
-        loss_dict['layer_loss'] = lambda2 * layer_loss
+        loss_dict['layer_loss'] = lambda2 * layer_loss * 100
         loss_dict['distill_loss'] = lambda2 * distill_loss
 
         return loss_dict

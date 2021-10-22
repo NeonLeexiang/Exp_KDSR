@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH -J E1020B
+#SBATCH -J TBase
 #SBATCH -p defq
 #SBATCH -N 1
 #SBATCH --ntasks-per-node=6
@@ -25,7 +25,7 @@ python test_conda_env_setting.py
 
 cd PISR || exit
 
-python step3_train_base_model.py --config configs/self_deeper_fsrcnn_32_64/step4.yml
+python results_test.py --config configs/self_deeper_fsrcnn_32_64/step2.yml
 
 
 

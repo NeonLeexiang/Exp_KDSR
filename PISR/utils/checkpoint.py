@@ -47,7 +47,7 @@ def copy_last_n_checkpoints(config, n, name, model_type):
 
 def load_checkpoint(model, optimizer, checkpoint, model_type):
     print('load checkpoint from', checkpoint)
-    checkpoint = torch.load(checkpoint)
+    checkpoint = torch.load(checkpoint, map_location='cpu')
     checkpoint_dict = checkpoint['state_dict']
     model.load_state_dict(checkpoint_dict) #, strict=False)
 

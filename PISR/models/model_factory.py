@@ -27,4 +27,14 @@ def get_model(config, model_type):
         return f(**config[model_type+'_model'].params)
 
 
+def get_test_model(model_name, model_params):
 
+    global device
+    os.environ["CUDA_VISIBLE_DEVICES"] = str(0)
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+    print('model name:', model_name)
+
+    f = globals().get('get_' + model_name)
+
+    return f(**model_params)

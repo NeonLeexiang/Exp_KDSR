@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH -J E19AL2
+#SBATCH -J E20AL2
 #SBATCH -p defq
 #SBATCH -N 1
 #SBATCH --ntasks-per-node=6

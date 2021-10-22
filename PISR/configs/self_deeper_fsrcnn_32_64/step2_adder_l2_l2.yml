@@ -39,13 +39,13 @@ scheduler:
   name: 'cosine'
   params:
     T_max: 1000
-    eta_min: 0.00001
+    eta_min: 0.00000001
 
 
 optimizer:
   name: adam
   params:
-    lr: 0.001
+    lr: 0.000001
 
 
 loss:
