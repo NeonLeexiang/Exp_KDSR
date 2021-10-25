@@ -1,13 +1,11 @@
-base_config: 'configs/vdsr_base/base.ram.yml'
+base_config: 'configs/self_deeper_fsrcnn_32_64/base.ram.yml'
 
 teacher_model:
-  name: 'vdsr_base_student'
+  name: 'self_fsrcnn_cuda_student'
   params:
     scale: 2
     n_colors: 1
-    m: 16
-    k: 1
-    encoder:
+    m: 4
 
 
 train:
@@ -30,7 +28,7 @@ scheduler:
 optimizer:
   name: adam
   params:
-    lr: 0.0001
+    lr: 0.001
 
 
 loss:

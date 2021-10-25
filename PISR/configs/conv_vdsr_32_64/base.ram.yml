@@ -10,7 +10,7 @@ data:
       params:
         base_dir: './data/DIV2K'
         augment: True
-        patch_size: 192
+        patch_size: 64
         data_range: '1-800'
         test_every: 1000
 
@@ -19,7 +19,7 @@ data:
       params:
         base_dir: './data/DIV2K'
         augment: False
-        patch_size: 192
+        patch_size: 64
         data_range: '801-810'
 
   test:
@@ -38,6 +38,6 @@ data:
 
 
 train:
- dir: './results/self_adder_vdsr_base_model_test/'
+ dir: './results/conv_vdsr_32_64/'
 
 

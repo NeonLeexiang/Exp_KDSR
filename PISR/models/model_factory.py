@@ -6,6 +6,7 @@ from .fsrcnn_adder_net import *
 # from .vdsr_adder_net import *
 # from .vdsr_base_model import *
 from .self_adder_fsrcnn import *
+from .conv_vdsr import *
 # from .self_adder_vdsr_base import *
 
 

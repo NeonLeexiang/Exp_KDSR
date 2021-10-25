@@ -81,8 +81,8 @@ def vid_loss(reduction='mean', lambda1=1, lambda2=1, epsilon=1e-8,
         gt_loss = 0
         distill_loss = 0
 
-        # TODO: 1 layer loss
-        layer_loss = 0
+        # # TODO: 1 layer loss
+        # layer_loss = 0
 
         loss_dict = dict()
         student_pred_hr = student_pred_dict['hr']
@@ -92,9 +92,9 @@ def vid_loss(reduction='mean', lambda1=1, lambda2=1, epsilon=1e-8,
                 layer_name = k.split('_mean')[0]
                 tl = teacher_pred_dict[layer_name]
 
-                # TODO: 2 layer loss
-                stl = student_pred_dict[layer_name]
-                layer_loss += gt_loss_fn(stl, tl)
+                # # TODO: 2 layer loss
+                # stl = student_pred_dict[layer_name]
+                # layer_loss += gt_loss_fn(stl, tl)
 
                 mu = student_pred_dict['%s_mean'%layer_name]
                 std = student_pred_dict['%s_var'%layer_name]
@@ -102,11 +102,11 @@ def vid_loss(reduction='mean', lambda1=1, lambda2=1, epsilon=1e-8,
 
         gt_loss = gt_loss_fn(student_pred_hr, HR)
 
-        # TODO: 3 add loss
-        loss_dict['loss'] = lambda1 * (gt_loss + layer_loss) + lambda2 * distill_loss
-        # loss_dict['loss'] = lambda1 * gt_loss + lambda2 * distill_loss
+        # # TODO: 3 add loss
+        # loss_dict['loss'] = lambda1 * (gt_loss + layer_loss) + lambda2 * distill_loss
+        loss_dict['loss'] = lambda1 * gt_loss + lambda2 * distill_loss
         loss_dict['gt_loss'] = lambda1 * gt_loss
-        loss_dict['layer_loss'] = layer_loss
+        # loss_dict['layer_loss'] = layer_loss
         loss_dict['distill_loss'] = lambda2 * distill_loss
 
         return loss_dict

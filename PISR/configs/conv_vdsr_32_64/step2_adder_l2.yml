@@ -1,8 +1,8 @@
-base_config: 'configs/fsrcnn/base.ram.yml'
+base_config: 'configs/self_deeper_fsrcnn_32_64/base.ram.yml'
 
 
 teacher_model:
-  name: 'fsrcnn_teacher'
+  name: 'self_fsrcnn_teacher'
   params:
     scale: 2
     n_colors: 1
@@ -12,25 +12,21 @@ teacher_model:
 
 
 student_model:
-  name: 'fsrcnn_student'
+  name: 'self_fsrcnn_student_l2'
   params:
     scale: 2
     n_colors: 1
     initialize_from:
-      - 'results/fsrcnn/fsrcnn_teacher/checkpoint/'
+
     modules_to_initialize:
-      - - 'feature_extraction'
-        - 'shrinking'
-        - 'mapping'
-        - 'expanding'
-        - 'last_layer'
+
     vid_info:
       - 'expanding:None'
 
 
 train:
   batch_size: 16
-  num_epochs: 1000
+  num_epochs: 2000
   teacher_dir: ''
   student_dir: ''
 
@@ -42,8 +38,8 @@ eval:
 scheduler:
   name: 'cosine'
   params:
-    T_max: 1000
-    eta_min: 0.00001
+    T_max: 2000
+    eta_min: 0.0000001
 
 
 optimizer:
@@ -53,7 +49,7 @@ optimizer:
 
 
 loss:
-  name: 'vid_loss'
+  name: 'vid_loss_l2'
   params:
     reduction: 'mean'
     lambda1: 1
