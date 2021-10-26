@@ -244,7 +244,7 @@ def main():
     config = utils.config.load(args.config_file)
 
     os.environ["CUDA_VISIBLE_DEVICES"] = str(config.gpu)
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     pprint.PrettyPrinter(indent=2).pprint(config)
     utils.prepare_train_directories(config, model_type=model_type)

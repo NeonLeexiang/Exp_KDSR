@@ -32,6 +32,7 @@ from utils.utils import quantize
 
 device = None
 model_type = None
+device_0, device_1 = None, None
 
 
 def adjust_learning_rate(config, epoch):
@@ -51,15 +52,17 @@ def train_single_epoch(config, student_model, teacher_model, dataloader, criteri
 
     tbar = tqdm.tqdm(enumerate(dataloader), total=total_step)
     for i, (LR_patch, HR_patch, filepath) in tbar:
-        if not HR_patch.is_cuda:
-            HR_patch = HR_patch.to(device)
-            LR_patch = LR_patch.to(device)
+
+        HR_patch_0 = HR_patch.to(device_0)
+        LR_patch_0 = LR_patch.to(device_0)
+        HR_patch_1 = HR_patch.to(device_1)
+        LR_patch_1 = LR_patch.to(device_1)
 
         optimizer.zero_grad()
 
-        teacher_pred_dict = teacher_model.forward(LR=LR_patch, HR=HR_patch)
-        student_pred_dict = student_model.forward(LR=LR_patch, teacher_pred_dict=teacher_pred_dict)
-        loss = criterion['train'](teacher_pred_dict, student_pred_dict, HR_patch)
+        teacher_pred_dict = teacher_model.forward(LR=LR_patch_0, HR=HR_patch_0)
+        student_pred_dict = student_model.forward(LR=LR_patch_1, teacher_pred_dict=teacher_pred_dict)
+        loss = criterion['train'](teacher_pred_dict, student_pred_dict, HR_patch_1)
         for k, v in loss.items():
             log_dict[k] = v.item()
 
@@ -105,16 +108,18 @@ def evaluate_single_epoch(config, student_model, teacher_model, dataloader,
         total_loss = 0
         total_iter = 0
         for i, (LR_img, HR_img, filepath) in tbar:
-            HR_img = HR_img.to(device)
-            LR_img = LR_img.to(device)
+            HR_img_0 = HR_img.to(device_0)
+            LR_img_0 = LR_img.to(device_0)
+            HR_img_1 = HR_img.to(device_1)
+            LR_img_1 = LR_img.to(device_1)
 
-            teacher_pred_dict = teacher_model.forward(LR=LR_img,HR=HR_img)
-            student_pred_dict = student_model.forward(LR=LR_img, teacher_pred_dict=teacher_pred_dict)
+            teacher_pred_dict = teacher_model.forward(LR=LR_img_0, HR=HR_img_0)
+            student_pred_dict = student_model.forward(LR=LR_img_1, teacher_pred_dict=teacher_pred_dict)
             pred_hr = student_pred_dict['hr']
-            total_loss += criterion['val'](pred_hr, HR_img).item()
+            total_loss += criterion['val'](pred_hr, HR_img_1).item()
 
             pred_hr = quantize(pred_hr, config.data.rgb_range)
-            total_psnr += get_psnr(pred_hr, HR_img, config.data.scale,
+            total_psnr += get_psnr(pred_hr, HR_img_1, config.data.scale,
                                   config.data.rgb_range,
                                   benchmark=eval_type=='test')
 
@@ -125,7 +130,7 @@ def evaluate_single_epoch(config, student_model, teacher_model, dataloader,
             tbar.set_postfix(**postfix_dict)
 
             if writer is not None and i < 5:
-                fig = visualizer(LR_img, HR_img,
+                fig = visualizer(LR_img_1, HR_img_1,
                                  student_pred_dict, teacher_pred_dict)
                 writer.add_figure('{}/{:04d}'.format(eval_type, i), fig,
                                  global_step=epoch)
@@ -148,9 +153,9 @@ def evaluate_single_epoch(config, student_model, teacher_model, dataloader,
 def train(config, student_model, teacher_model, dataloaders, criterion,
           optimizer, scheduler, writer, visualizer, start_epoch):
     num_epochs = config.train.num_epochs
-    if torch.cuda.device_count() > 1:
-        teacher_model = torch.nn.DataParallel(teacher_model)
-        student_model = torch.nn.DataParallel(student_model)
+    # if torch.cuda.device_count() > 1:
+    #     teacher_model = torch.nn.DataParallel(teacher_model)
+    #     student_model = torch.nn.DataParallel(student_model)
 
     postfix_dict = {'train/lr': 0.0,
                     'train/loss': 0.0,
@@ -193,16 +198,16 @@ def count_parameters(model):
 
 
 def run(config):
-    teacher_model = get_model(config, 'teacher')
-    student_model = get_model(config, 'student')
-    if torch.cuda.device_count() > 1:
-        print("Let's use", torch.cuda.device_count(), "GPUs!")
-        # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
-        teacher_model = nn.DataParallel(teacher_model)
-        student_model = nn.DataParallel(student_model)
+    teacher_model = get_model(config, 'teacher').to(device_0)
+    student_model = get_model(config, 'student').to(device_1)
+    # if torch.cuda.device_count() > 1:
+    #     print("Let's use", torch.cuda.device_count(), "GPUs!")
+    #     # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
+    #     teacher_model = nn.DataParallel(teacher_model)
+    #     student_model = nn.DataParallel(student_model)
 
-    teacher_model = teacher_model.to(device)
-    student_model = student_model.to(device)
+    # teacher_model = teacher_model.to(device)
+    # student_model = student_model.to(device)
 
     print('The nubmer of parameters : %d'%count_parameters(student_model))
     criterion = get_loss(config)
@@ -254,6 +259,9 @@ def parse_args():
     return parser.parse_args()
 
 
+
+
+
 def main():
     global device
     import warnings
@@ -270,7 +278,9 @@ def main():
     config = utils.config.load(args.config_file)
 
     os.environ["CUDA_VISIBLE_DEVICES"]= str(config.gpu)
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+    device_0 = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    device_1 = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 
     pprint.PrettyPrinter(indent=2).pprint(config)
     utils.prepare_train_directories(config, model_type=model_type)

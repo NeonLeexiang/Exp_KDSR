@@ -50,4 +50,41 @@ File name: `Exp_1025_parallel_1000_1_32_train_parallel_vdsr_teacher.sh`
 - lr: start->0.001
 - config: [step1_16](../PISR/configs/conv_vdsr_32_64/step1_16.yml)
 - training result:
-- 
+
+
+---
+_due to the CUDA memory error, training the dataset with lower size_
+
+## `m=8` and separate the layer into 4 pieces
+
+File name: `Exp_1025_m8_1000_1_32_train_vdsr_teacher.sh`
+- Sbatch name: 25VT8
+- Jobid: 72223
+- Node: node004
+- Sbatch time: 1026-10:35
+- model name: vdsr_teacher
+- output path: /result/conv_vdsr_32_64_m8/vdsr_teacher
+- loss: vid_loss
+- lr: start->0.001
+- config: [step1_8](../PISR/configs/conv_vdsr_32_64/step1_8.yml)
+- training result:
+- other: _rebuild the model and set the model layer into 4 pieces for more information._
+
+File name: `Exp_1026_m8_1000_1_32_train_base_vdsr_model.sh`
+- Sbatch name: 26VB8
+- Jobid: 72227
+- Node: node005
+- Sbatch time: 1026-10:45
+- model name: base_vdsr_student
+- output path: /result/conv_vdsr_32_64_m8/base_vdsr_student
+- loss: l1loss
+- lr: start->0.001
+- config: [step4](../PISR/configs/conv_vdsr_32_64/step4.yml)
+- training result:
+- other: _training the baseline model of vdsr_
+
+
+
+
+
+

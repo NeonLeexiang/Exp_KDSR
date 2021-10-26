@@ -85,8 +85,8 @@ class VDSR(nn.Module):
         net_list.append(('upsampler', nn.Sequential(*self.up_sampler)))
         net_list.append(('input_layer', nn.Sequential(*self.input_layer)))
 
-        for i in range(m):
-            net_list.append(('residual_layer_{}'.format(i), nn.Sequential(self.residual_layers[i])))
+        for i in range(m // 2):
+            net_list.append(('residual_layer_{}'.format(i), nn.Sequential(self.residual_layers[i*2], self.residual_layers[i*2+1])))
 
         net_list.append(('output_layer', nn.Sequential(*self.output_layer)))
 
@@ -117,8 +117,8 @@ class VDSRAutoencoder(VDSR):
         net_list.append(('upsampler', nn.Sequential(*self.up_sampler)))
         net_list.append(('input_layer', nn.Sequential(*self.input_layer)))
 
-        for i in range(m):
-            net_list.append(('residual_layer_{}'.format(i), nn.Sequential(self.residual_layers[i])))
+        for i in range(m // 2):
+            net_list.append(('residual_layer_{}'.format(i), nn.Sequential(self.residual_layers[i*2], self.residual_layers[i*2+1])))
 
         net_list.append(('output_layer', nn.Sequential(*self.output_layer)))
 
@@ -254,3 +254,7 @@ def get_vdsr_student(scale, n_colors, **kwargs):
 
 def get_parallel_vdsr_teacher(scale, n_colors, **kwargs):
     return ParallelVDSRTeacher(scale, n_colors, **kwargs)
+
+
+def get_base_vdsr_student(scale, n_colors, **kwargs):
+    return VDSRStudent(scale, n_colors, **kwargs)

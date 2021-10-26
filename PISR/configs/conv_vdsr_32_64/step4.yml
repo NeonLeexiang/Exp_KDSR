@@ -1,11 +1,11 @@
-base_config: 'configs/self_deeper_fsrcnn_32_64/base.ram.yml'
+base_config: 'configs/conv_vdsr_32_64/base8.ram.yml'
 
 teacher_model:
-  name: 'self_fsrcnn_adder_base_student'
+  name: 'base_vdsr_student'
   params:
     scale: 2
     n_colors: 1
-    m: 4
+    m: 8
 
 
 train:
