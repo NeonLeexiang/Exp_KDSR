@@ -52,7 +52,7 @@ class ConvReLUBlock(nn.Module):
 
 
 class VDSR(nn.Module):
-    def __init__(self, scale, n_colors, d=64, s=12, m=18, vdsr_weight_init=False):
+    def __init__(self, scale, n_colors, d=64, s=12, m=8, vdsr_weight_init=False):
         """
 
             input ---> input_layer ---> residual_layer ---> output_layer ---> output
@@ -107,7 +107,7 @@ class VDSR(nn.Module):
 
 
 class VDSRAutoencoder(VDSR):
-    def __init__(self, scale, n_colors, d=64, s=12, m=18, k=1, encoder='inv_fsrcnn'):
+    def __init__(self, scale, n_colors, d=32, s=12, m=8, k=1, encoder='inv_fsrcnn'):
         super(VDSRAutoencoder, self).__init__(scale, n_colors, d, s, m)
 
         self.encoder = get_encoder(encoder, scale=scale, d=d, s=s, k=k, n_colors=n_colors)
@@ -129,7 +129,7 @@ class VDSRAutoencoder(VDSR):
 
 
 class VDSRTeacher(BaseNet):
-    def __init__(self, scale, n_colors, d=64, s=12, m=18, k=1, vid_info=None,
+    def __init__(self, scale, n_colors, d=32, s=12, m=8, k=1, vid_info=None,
                  modules_to_freeze=None, initialize_from=None, modules_to_initialize=None,
                  encoder='lcscc'):
         super(VDSRTeacher, self).__init__()
@@ -168,7 +168,7 @@ class VDSRTeacher(BaseNet):
 
 
 class VDSRStudent(BaseNet):
-    def __init__(self, scale, n_colors, d=64, s=12, m=18, vid_info=None, modules_to_freeze=None,
+    def __init__(self, scale, n_colors, d=32, s=12, m=8, vid_info=None, modules_to_freeze=None,
                  initialize_from=None, modules_to_initialize=None, vdsr_weight_init=False):
 
         super(VDSRStudent, self).__init__()
@@ -204,18 +204,92 @@ class VDSRStudent(BaseNet):
         return ret_dict
 
 
-# ----------------------------------------- parallel ----------------------------------
-class ParallelVDSRTeacher(BaseNet):
-    def __init__(self, scale, n_colors, d=64, s=12, m=18, k=1, vid_info=None,
-                 modules_to_freeze=None, initialize_from=None, modules_to_initialize=None,
-                 encoder='lcscc'):
-        super(ParallelVDSRTeacher, self).__init__()
+# ------------------------------------ create self VDSR student model -------------------------
+'''
+    VDSRTeacher model:
+    input[HR] ---> encoder[downSampling] ---> 
+    VDSR model[ upsampler -> input_layer -> 
+                residual_layer_0 [2 residual block] ->
+                residual_layer_1 [2 residual block] ->
+                residual_layer_2 [2 residual block] ->
+                residual_layer_3 [2 residual block] ->
+                output_layer] ---> output[SR]
+                
+    VDSRStudent model: we decrease the residual layer block
+    input[HR] ---> encoder[downSampling] ---> 
+    VDSR model[ upsampler -> input_layer -> 
+                residual_layer_0 [1 residual block] ->
+                residual_layer_1 [1 residual block] ->
+                residual_layer_2 [1 residual block] ->
+                residual_layer_3 [1 residual block] ->
+                output_layer] ---> output[SR]
+'''
+class DecreaseVDSR(nn.Module):
+    def __init__(self, scale, n_colors, d=32, s=12, m=4, vdsr_weight_init=False):
+        """
 
+            input ---> input_layer ---> residual_layer ---> output_layer ---> output
+          H*W*n_color   n_color->d        d->d                d->n_color       n_color
+
+        :param scale:
+        :param n_colors:
+        :param d:
+        :param s:
+        :param m:
+        :param vdsr_weight_init:
+        """
+        super(DecreaseVDSR, self).__init__()
+        self.scale = scale
+        self.up_sampler = []
+        self.up_sampler.append(nn.Sequential(*Upsampler(scale, n_colors, act=False)))
+        self.input_layer = []
+        self.input_layer.append(nn.Sequential(
+            nn.Conv2d(in_channels=n_colors, out_channels=d, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))))
+        self.output_layer = []
+        self.output_layer.append(nn.Sequential(
+            nn.Conv2d(in_channels=d, out_channels=n_colors, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))))
+
+        self.residual_layers = []
+        for _ in range(m):
+            self.residual_layers.append(nn.Sequential(
+                ConvReLUBlock(in_channels=d, out_channels=d, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))))
+
+        net_list = []
+        net_list.append(('upsampler', nn.Sequential(*self.up_sampler)))
+        net_list.append(('input_layer', nn.Sequential(*self.input_layer)))
+
+        # We decrease the residual layer num into half
+        for i in range(m):
+            net_list.append(('residual_layer_{}'.format(i), nn.Sequential(self.residual_layers[i])))
+
+        net_list.append(('output_layer', nn.Sequential(*self.output_layer)))
+
+        self.network = nn.Sequential(OrderedDict(net_list))
+
+        if vdsr_weight_init:
+            self.vdsr_weight_init()
+
+    def vdsr_weight_init(self, mean=0.0, std=0.001):
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight)
+                if m.bias is not None:
+                    m.bias.data.zero_()
+
+    def forward(self, x):
+        return self.network(x)
+
+
+class DecreaseVDSRStudent(BaseNet):
+    def __init__(self, scale, n_colors, d=32, s=12, m=4, vid_info=None, modules_to_freeze=None,
+                 initialize_from=None, modules_to_initialize=None, vdsr_weight_init=False):
+
+        super(DecreaseVDSRStudent, self).__init__()
         self.scale = scale
         self.initialize_from = initialize_from
-        self.modules_to_initialize = modules_to_initialize
         self.modules_to_freeze = modules_to_freeze
-        self.backbone = VDSRAutoencoder(scale, n_colors, d, s, m, k, encoder)
+        self.modules_to_initialize = modules_to_initialize
+        self.backbone = DecreaseVDSR(scale, n_colors, d, s, m, vdsr_weight_init=vdsr_weight_init)
         self.vid_info = vid_info if vid_info is not None else []
         self.vid_module_dict = self.get_vid_module_dict()
 
@@ -224,10 +298,9 @@ class ParallelVDSRTeacher(BaseNet):
         if modules_to_freeze is not None:
             self.freeze_modules()
 
-    def forward(self, HR, LR=None):
+    def forward(self, LR, HR=None, teacher_pred_dict=None):
         ret_dict = dict()
-
-        x = HR
+        x = LR
 
         layer_names = self.backbone.network._modules.keys()
         for layer_name in layer_names:
@@ -244,6 +317,65 @@ class ParallelVDSRTeacher(BaseNet):
         return ret_dict
 
 
+# --------------------------------------- channel ---------------------------------------------------
+class ChannelVDSR(nn.Module):
+    def __init__(self, scale, n_colors, d=32, s=12, m=8, vdsr_weight_init=False):
+        """
+
+            input ---> input_layer ---> residual_layer ---> output_layer ---> output
+          H*W*n_color   n_color->d        d->d                d->n_color       n_color
+
+        :param scale:
+        :param n_colors:
+        :param d:
+        :param s:
+        :param m:
+        :param vdsr_weight_init:
+        """
+        super(ChannelVDSR, self).__init__()
+        self.scale = scale
+        self.up_sampler = []
+        self.up_sampler.append(nn.Sequential(*Upsampler(scale, n_colors, act=False)))
+        self.input_layer = []
+        self.input_layer.append(nn.Sequential(
+            nn.Conv2d(in_channels=n_colors, out_channels=d, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))))
+        self.output_layer = []
+        self.output_layer.append(nn.Sequential(
+            nn.Conv2d(in_channels=d, out_channels=n_colors, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))))
+
+        self.residual_layers = []
+        for _ in range(m):
+            self.residual_layers.append(nn.Sequential(
+                ConvReLUBlock(in_channels=d, out_channels=d, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))))
+
+        net_list = []
+        net_list.append(('upsampler', nn.Sequential(*self.up_sampler)))
+        net_list.append(('input_layer', nn.Sequential(*self.input_layer)))
+
+        for i in range(m):
+            net_list.append(('residual_layer_{}'.format(i), nn.Sequential(self.residual_layers[i])))
+
+        net_list.append(('output_layer', nn.Sequential(*self.output_layer)))
+
+        self.network = nn.Sequential(OrderedDict(net_list))
+
+        if vdsr_weight_init:
+            self.vdsr_weight_init()
+
+    def vdsr_weight_init(self, mean=0.0, std=0.001):
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight)
+                if m.bias is not None:
+                    m.bias.data.zero_()
+
+    def forward(self, x):
+        return self.network(x)
+
+
+
+
+
 def get_vdsr_teacher(scale, n_colors, **kwargs):
     return VDSRTeacher(scale, n_colors, **kwargs)
 
@@ -252,9 +384,29 @@ def get_vdsr_student(scale, n_colors, **kwargs):
     return VDSRStudent(scale, n_colors, **kwargs)
 
 
-def get_parallel_vdsr_teacher(scale, n_colors, **kwargs):
-    return ParallelVDSRTeacher(scale, n_colors, **kwargs)
-
-
 def get_base_vdsr_student(scale, n_colors, **kwargs):
     return VDSRStudent(scale, n_colors, **kwargs)
+
+
+# --------------------------------- decrease residual layer student model ----------
+# this for student model initialization
+def get_decrease_base_vdsr_student(scale, n_colors, **kwargs):
+    return DecreaseVDSRStudent(scale, n_colors, **kwargs)
+
+
+def get_decrease_vdsr_student(scale, n_colors, **kwargs):
+    return DecreaseVDSRStudent(scale, n_colors, **kwargs)
+
+
+def get_decrease_ll1_vdsr_student(scale, n_colors, **kwargs):
+    return DecreaseVDSRStudent(scale, n_colors, **kwargs)
+
+
+def get_decrease_ll2_vdsr_student(scale, n_colors, **kwargs):
+    return DecreaseVDSRStudent(scale, n_colors, **kwargs)
+
+
+def get_decrease_ll_vdsr_student(scale, n_colors, **kwargs):
+    return DecreaseVDSRStudent(scale, n_colors, **kwargs)
+
+
