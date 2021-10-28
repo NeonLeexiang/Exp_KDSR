@@ -1,8 +1,8 @@
-base_config: 'configs/conv_vdsr_32_64/base8.ram.yml'
+base_config: 'configs/channel_vdsr_32_64/base.ram.yml'
 
 
 teacher_model:
-  name: 'vdsr_teacher'
+  name: 'channel_vdsr_teacher'
   params:
     scale: 2
     n_colors: 1
@@ -12,12 +12,12 @@ teacher_model:
 
 
 student_model:
-  name: 'vdsr_student'
+  name: 'de_channel_vdsr_student'
   params:
     scale: 2
     n_colors: 1
     initialize_from:
-      - 'results/conv_vdsr_32_64_m8/vdsr_teacher/checkpoint/'
+      - './results/channel_vdsr_32_64/base_de_channel_vdsr_student/checkpoint/'
     modules_to_initialize:
       - - 'upsampler'
         - 'input_layer'
@@ -25,12 +25,21 @@ student_model:
         - 'residual_layer_1'
         - 'residual_layer_2'
         - 'residual_layer_3'
+        - 'residual_layer_4'
+        - 'residual_layer_5'
+        - 'residual_layer_6'
+        - 'residual_layer_7'
         - 'output_layer'
     vid_info:
       - 'residual_layer_0:None'
       - 'residual_layer_1:None'
       - 'residual_layer_2:None'
       - 'residual_layer_3:None'
+      - 'residual_layer_4:None'
+      - 'residual_layer_5:None'
+      - 'residual_layer_6:None'
+      - 'residual_layer_7:None'
+
 
 
 train:
@@ -71,5 +80,4 @@ visualizer:
 
 
 gpu: 0
-
 

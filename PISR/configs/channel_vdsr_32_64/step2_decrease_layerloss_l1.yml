@@ -1,8 +1,8 @@
-base_config: 'configs/conv_vdsr_32_64/base8.ram.yml'
+base_config: 'configs/channel_vdsr_32_64/base.ram.yml'
 
 
 teacher_model:
-  name: 'vdsr_teacher'
+  name: 'channel_vdsr_teacher'
   params:
     scale: 2
     n_colors: 1
@@ -12,12 +12,12 @@ teacher_model:
 
 
 student_model:
-  name: 'decrease_vdsr_student'
+  name: 'll1_de_channel_vdsr_student'
   params:
     scale: 2
     n_colors: 1
     initialize_from:
-      - './results/conv_vdsr_32_64_m8/decrease_base_vdsr_student/checkpoint/'
+      - './results/channel_vdsr_32_64/base_de_channel_vdsr_student/checkpoint/'
     modules_to_initialize:
       - - 'upsampler'
         - 'input_layer'
@@ -25,12 +25,20 @@ student_model:
         - 'residual_layer_1'
         - 'residual_layer_2'
         - 'residual_layer_3'
+        - 'residual_layer_4'
+        - 'residual_layer_5'
+        - 'residual_layer_6'
+        - 'residual_layer_7'
         - 'output_layer'
     vid_info:
       - 'residual_layer_0:None'
       - 'residual_layer_1:None'
       - 'residual_layer_2:None'
       - 'residual_layer_3:None'
+      - 'residual_layer_4:None'
+      - 'residual_layer_5:None'
+      - 'residual_layer_6:None'
+      - 'residual_layer_7:None'
 
 
 
@@ -59,7 +67,7 @@ optimizer:
 
 
 loss:
-  name: 'vid_loss'
+  name: 'vid_loss_l1'
   params:
     reduction: 'mean'
     lambda1: 1

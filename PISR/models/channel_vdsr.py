@@ -155,6 +155,7 @@ class ChannelVDSRStudent(BaseNet):
         return ret_dict
 
 
+# --------------------------------------------
 def get_channel_vdsr_student(scale, n_colors, **kwargs):
     return ChannelVDSRStudent(scale, n_colors, **kwargs)
 
@@ -165,6 +166,26 @@ def get_channel_vdsr_teacher(scale, n_colors, **kwargs):
 
 def get_base_channel_vdsr_student(scale, n_colors, **kwargs):
     return ChannelVDSRStudent(scale, n_colors, **kwargs)
+
+
+def get_base_de_channel_vdsr_student(scale, n_colors, **kwargs):
+    return ChannelVDSRStudent(scale, n_colors, d=16, **kwargs)
+
+
+def get_de_channel_vdsr_student(scale, n_colors, **kwargs):
+    return ChannelVDSRStudent(scale, n_colors, d=16, **kwargs)
+
+
+def get_ll1_de_channel_vdsr_student(scale, n_colors, **kwargs):
+    return ChannelVDSRStudent(scale, n_colors, d=16, **kwargs)
+
+
+def get_ll2_de_channel_vdsr_student(scale, n_colors, **kwargs):
+    return ChannelVDSRStudent(scale, n_colors, d=16, **kwargs)
+
+
+def get_ll_de_channel_vdsr_student(scale, n_colors, **kwargs):
+    return ChannelVDSRStudent(scale, n_colors, d=16, **kwargs)
 
 
 # def get_channel_ll1_vdsr_student(scale, n_colors, **kwargs):
