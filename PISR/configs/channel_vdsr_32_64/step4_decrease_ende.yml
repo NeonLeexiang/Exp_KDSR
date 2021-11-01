@@ -1,0 +1,46 @@
+base_config: 'configs/channel_vdsr_32_64/base.ram.yml'
+
+teacher_model:
+  name: 'base_de_ende_channel_vdsr_student'
+  params:
+    scale: 2
+    n_colors: 1
+    m: 8
+
+
+train:
+  batch_size: 16
+  num_epochs: 1000
+  teacher_dir: ''
+
+
+eval:
+  batch_size: 1
+
+
+scheduler:
+  name: 'cosine'
+  params:
+    T_max: 1000
+    eta_min: 0.00001
+
+
+optimizer:
+  name: adam
+  params:
+    lr: 0.001
+
+
+loss:
+  name: 'l1loss'
+  params:
+    reduction: 'mean'
+
+
+
+visualizer:
+  name: 'step2'
+
+
+gpu: 0
+

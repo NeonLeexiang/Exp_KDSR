@@ -25,11 +25,11 @@ python ../test_conda_env_setting.py
 
 cd ../PISR || exit
 
-python step3_train_base_model.py --config configs/channel_vdsr_32_64/step4.yml
+#python step3_train_base_model.py --config configs/channel_vdsr_32_64/step4.yml
+#
+#sleep 4h
 
-sleep 60
-
-python step2_train_student.py --config configs/channel_vdsr_32_64/step2_decrease_layerloss_l2.yml
+#python step2_train_student.py --config configs/channel_vdsr_32_64/step2_decrease_layerloss_l2.yml
 
 sleep 60
 

@@ -130,8 +130,8 @@ def evaluate_single_epoch(config, student_model, teacher_model, dataloader,
                 writer.add_figure('{}/{:04d}'.format(eval_type, i), fig,
                                   global_step=epoch)
             total_iter = i
-            # del LR_img, HR_img
-            # torch.cuda.empty_cache()
+            del LR_img, HR_img
+            torch.cuda.empty_cache()
 
 
         log_dict = {}
